@@ -1,0 +1,332 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Grass.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/apartment_structure/protos/Wall.proto"
+
+WorldInfo {
+  basicTimeStep 20
+  contactProperties [
+    ContactProperties {
+      material1 "frictionless_caster"
+      coulombFriction [
+        0
+      ]
+      bounce 0
+    }
+    ContactProperties {
+      coulombFriction [
+        0.8
+      ]
+      bounce 0
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.4344509638661858 0.06334064980997167 0.8984655375012403 2.8810993233894426
+  position 30.765432403751 -9.060529407275897 40.87595127297699
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 15 15
+  floorAppearance Grass {
+  }
+  wallThickness 0.1
+}
+
+Robot {
+  name "Ros2Supervisor"
+  controller "<extern>"
+  supervisor TRUE
+}
+
+Robot {
+  name "rtf_monitor_node"
+  controller "<extern>"
+  supervisor TRUE
+  synchronization FALSE
+}
+
+
+Wall {
+  translation -0.4 5.77 1.87753e-06
+  rotation 0 1 0 4.692820414042842e-06
+  name "wall(1)"
+  size 5 3 2.4
+}
+Wall {
+  translation -0.4 -5.88 1.87753e-06
+  rotation 0 1 0 4.692820414042842e-06
+  name "wall(2)"
+  size 5 3 2.4
+}
+Wall {
+  translation 7.4 -0.06 -3.47309e-05
+  rotation 0 1 0 4.692820414042842e-06
+  name "wall(4)"
+  size 0.2 14.9 2.4
+}
+Wall {
+  translation -7.37 -0.04 3.45824e-05
+  rotation 0 1 0 4.692820414042842e-06
+  name "wall(5)"
+  size 0.2 15 2.4
+}
+Wall {
+  translation 0.0200061 -7.44 -9.76649e-08
+  rotation 2.3464099999870814e-06 -2.3464099999870814e-06 0.9999999999944944 -1.5707953071795862
+  name "wall(6)"
+  size 0.2 14.9 2.4
+}
+Wall {
+  translation 0.0199929 7.38 -9.76311e-08
+  rotation 2.3464099999870814e-06 -2.3464099999870814e-06 0.9999999999944944 -1.5707953071795862
+  name "wall(7)"
+  size 0.2 15 2.4
+}
+
+DEF MY_ROBOT Robot {
+  translation -4.16 -4.22 0.056
+  rotation 0 0 -1 -1.5707996938995747
+  children [
+
+    GPS {
+      name "gps"
+    }
+    InertialUnit {
+      translation -0.08535 0 -0.04
+      rotation 1 0 0 3.14159
+      name "my_imu"
+    }
+    Gyro {
+      translation -0.085 0 -0.04
+      rotation 1 0 0 3.14159
+      name "gyro"
+      lookupTable [
+        -1000 -1000 0.010
+        1000 1000 0.010
+      ]
+    }
+    Accelerometer {
+      translation -0.085 0 -0.04
+      rotation 1 0 0 3.14159
+      name "accelerometer"
+      lookupTable [
+        -1000 -1000 0.010
+        1000 1000 0.010
+      ]
+    }
+    Shape {
+      appearance DEF white PBRAppearance { roughness 1 metalness 0 }
+      geometry Box { size 0.31 0.22 0.08 }
+    }
+    # --- RIGHT MOTOR ---
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position 0
+        axis 0 1 0
+        anchor -0.08535 -0.125 -0.02105
+      }
+      device [
+        RotationalMotor {
+          name "joint_br"
+          maxVelocity 17.29
+          maxTorque 1.2
+        }
+        PositionSensor { 
+          name "joint_br_sensor" 
+          resolution 0.05236
+          noise 0.020
+        }
+      ]
+      endPoint Solid {
+        translation -0.08535 -0.125 -0.02105
+        children [
+          Pose {
+            rotation 1 0 0 1.5708
+            children [
+              Shape {
+                appearance DEF blue PBRAppearance { baseColor 0 0 1 roughness 1 metalness 0 }
+                geometry Cylinder { height 0.0255 radius 0.0347 }
+              }
+            ]
+          }
+        ]
+        name "link_br"
+        boundingObject Pose {
+          rotation 1 0 0 1.5708
+          children [ Sphere { radius 0.0347 } ]
+        }
+        physics Physics {
+          density -1
+          mass 0.02355
+          centerOfMass [ 0 0 0 ]
+          inertiaMatrix [ 8.354e-05 0.00014178 8.354e-05, 0 0 0 ]
+        }
+      }
+    }
+    # --- LEFT MOTOR ---
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position 0
+        axis 0 1 0
+        anchor -0.08535 0.125 -0.02105
+      }
+      device [
+        RotationalMotor {
+          name "joint_bl"
+          maxVelocity 17.29
+          maxTorque 1.2
+        }
+        PositionSensor { 
+          name "joint_bl_sensor" 
+          resolution 0.05236
+          noise 0.020
+        }
+      ]
+      endPoint Solid {
+        translation -0.08535 0.125 -0.02105
+        children [
+          Pose {
+            rotation 1 0 0 1.5708
+            children [
+              Shape {
+                appearance PBRAppearance { baseColor 0.5 0.5 0.5 roughness 1 metalness 0 }
+                geometry Cylinder { height 0.0255 radius 0.0347 }
+              }
+            ]
+          }
+        ]
+        name "link_bl"
+        boundingObject Pose {
+          rotation 1 0 0 1.5708
+          children [ Sphere { radius 0.0347 } ]
+        }
+        physics Physics {
+          density -1
+          mass 0.02355
+          centerOfMass [ 0 0 0 ]
+          inertiaMatrix [ 8.354e-05 0.00014178 8.354e-05, 0 0 0 ]
+        }
+      }
+    }
+    # --- FRONT CASTER ---
+    Solid {
+      translation 0.0965 0 -0.048
+      children [
+        Solid {
+          children [
+            Shape {
+              appearance DEF grey PBRAppearance { baseColor 0.5 0.5 0.5 roughness 1 metalness 0 }
+              geometry Sphere { radius 0.007995 }
+            }
+          ]
+          name "link_front"
+          contactMaterial "frictionless_caster"
+          boundingObject Sphere { radius 0.007995 }
+          physics Physics {
+            density -1
+            mass 0.05
+            centerOfMass [ 0 0 0 ]
+            inertiaMatrix [ 1e-06 1e-06 1e-06, 0 0 0 ]
+          }
+        }
+      ]
+      name "caster_swivel"
+      physics Physics {
+        density -1
+        mass 0.001
+        centerOfMass [ 0 0 0 ]
+        inertiaMatrix [ 1e-06 1e-06 1e-06, 0 0 0 ]
+      }
+    }
+    # --- LIDAR ---
+    Solid {
+      translation 0 0 0.04
+      children [
+        Pose {
+          translation 0 0 0.02425
+          children [
+            Shape {
+              appearance DEF dark_grey PBRAppearance { baseColor 0.2 0.2 0.2 roughness 1 metalness 0 }
+              geometry Cylinder { height 0.0485 radius 0.0125 }
+            }
+          ]
+        }
+        Lidar {
+          name "webots_lidar"
+          horizontalResolution 360
+          fieldOfView 6.28318
+          numberOfLayers 1
+          minRange 0.12
+          maxRange 3.5
+          noise 0.03
+          resolution 0.015
+        }
+      ]
+      name "lidar_link"
+      boundingObject Pose {
+        translation 0 0 0.02425
+        children [ Cylinder { height 0.0485 radius 0.0125 } ]
+      }
+      physics Physics {
+        density -1
+        mass 0.052
+        centerOfMass [ 0 0 0 ]
+        inertiaMatrix [ 4e-06 4e-06 4e-06, 0 0 0 ]
+      }
+    }
+    # --- CAMERA ---
+    Solid {
+      translation 0.1595 0 0.00364
+      rotation -0.58906 0.55318 -0.58906 2.02114
+      children [
+        Shape {
+          appearance DEF red PBRAppearance { baseColor 1 0 0 roughness 1 metalness 0 }
+          geometry Box { size 0.0045 0.025 0.023 }
+        }
+        Pose {
+          rotation 0.57735 -0.57735 0.57735 2.09439
+          children [
+            Camera {
+              name "my_webots_camera"
+              fieldOfView 1.047
+              width 640
+              height 480
+            }
+          ]
+        }
+      ]
+      name "camera_link"
+      physics Physics {
+        density -1
+        mass 0.004
+        centerOfMass [ 0 0 0 ]
+        inertiaMatrix [ 3e-07 2e-07 2e-07, 0 0 0 ]
+      }
+    }
+  ]
+  name "robot_a"
+  boundingObject Box {
+    size 0.31 0.22 0.08
+  }
+  physics Physics {
+    density -1
+    mass 1.54074
+    centerOfMass [
+      0 0 0
+    ]
+    inertiaMatrix [
+      0.007512 0.014051 0.019808
+      0 0 0
+    ]
+  }
+  controller "<extern>"
+}
+
+

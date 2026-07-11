@@ -1,0 +1,68 @@
+ekf_filter_node:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: true
+    publish_tf: true
+
+    # ODOMETRY: Corrected topic and enabled differential mode
+    odom0: /diffdrive_controller/odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_differential: true
+
+    # [CRITICAL OVERRIDE]: Masking the ~20.0 variance from the diff_drive controller
+    odom0_pose_covariance: [0.01, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.0, 0.01, 0.0, 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                            0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
+    
+    odom0_twist_covariance: [0.01, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.01, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
+
+    # IMU: Provides Yaw Velocity (Vyaw)
+    imu0: /imu/data
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_remove_gravitational_acceleration: true
+
+    # GPS: Provides absolute global X and Y
+    pose0: /gps
+    pose0_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    pose0_differential: false
+
+    # [FIXED] MATHEMATICALLY STABLE 15x15 MATRIX
+    # Yaw and Yaw_Rate noise increased slightly so the EKF trusts the IMU over its own dead-reckoning.
+    process_noise_covariance: [
+      0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01
+    ]

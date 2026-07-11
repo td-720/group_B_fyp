@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<robot name="pioneer3dx">
+    <webots>
+        <plugin type="webots_ros2_control::Ros2Control" />
+    </webots>
+
+    <ros2_control name="WebotsControl" type="system">
+        <hardware>
+            <plugin>webots_ros2_control::Ros2ControlSystem</plugin>
+        </hardware>
+        <joint name="left_wheel">
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <command_interface name="velocity"/>
+        </joint>
+        <joint name="right_wheel">
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <command_interface name="velocity"/>
+        </joint>
+    </ros2_control>
+</robot>

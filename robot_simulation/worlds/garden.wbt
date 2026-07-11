@@ -1,0 +1,371 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Slide.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Swing.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Barbecue.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/DogHouse.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/SwingCouch.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/TableWithUmbrella.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Pergolas.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/trees/protos/PalmTree.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
+
+WorldInfo {
+  basicTimeStep 20
+  contactProperties [
+    ContactProperties {
+      material1 "frictionless_caster"
+      coulombFriction [ 0 ] # <--- FIXED: Now truly frictionless for turning
+      bounce 0
+    }
+    ContactProperties {
+      material1 "default"
+      coulombFriction [ 0.85 ] # <--- FIXED: Set World/Floor friction explicitly to 0.85
+      bounce 0
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.20855375217543629 0.8049294911745657 0.5555122381109181 0.8728439819493234
+  position -16.725923065061004 -11.904422443471208 15.731593108716469
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Pedestrian {
+  translation 1.72 -1.02 1.27
+  rotation 0 0 1 1.5708
+  shirtColor 0 0.333333 1
+  pantsColor 1 1 1
+  skinColor 0.184314 0 0
+}
+Pedestrian {
+  translation 1.76564 0.202846 1.37
+  rotation 0 0 1 -1.3089953071795861
+  name "pedestrian(1)"
+}
+PalmTree {
+  translation 4.55 4.38 0
+}
+PalmTree {
+  translation 4.55 -4.49 0
+  name "palm tree(1)"
+}
+Pergolas {
+  translation 2.75 -1.05 0.23
+}
+TableWithUmbrella {
+  translation 3.63 -1.55 0
+}
+SwingCouch {
+  translation 0.32 4.13 0
+  rotation 0 0 1 -1.5707953071795862
+}
+DogHouse {
+  translation -4.01 -4.41 0.04
+}
+Barbecue {
+  translation 3.81 0.1 0
+  rotation 0 0 1 3.14159
+}
+Swing {
+  translation -4 -0.92 0
+}
+Slide {
+  translation -3.92 2.47 0
+}
+RectangleArena {
+  floorSize 10 10
+  floorAppearance Parquetry {
+    type "light strip"
+  }
+}
+
+Robot {
+  name "Ros2Supervisor"
+  controller "<extern>"
+  supervisor TRUE
+}
+
+
+Robot {
+  translation 0 0 0.056
+  children [
+    GPS {
+    }
+    InertialUnit {
+      translation -0.08535 0 -0.04
+      rotation 1 0 0 3.14159
+      name "my_imu"
+    }
+    Gyro {
+      translation -0.085 0 -0.04
+      rotation 1 0 0 3.14159
+      name "gyro"
+      lookupTable [
+        -1000 -1000 0.005
+        1000 1000 0.005
+      ]
+    }
+    Accelerometer {
+      translation -0.085 0 -0.04
+      rotation 1 0 0 3.14159
+      name "accelerometer"
+      lookupTable [
+        -1000 -1000 0.01
+        1000 1000 0.01
+      ]
+    }
+    Shape {
+      appearance DEF white PBRAppearance {
+        roughness 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.31 0.22 0.08
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        axis 0 1 0
+        anchor -0.08535 -0.125 -0.02105
+      }
+      device [
+        RotationalMotor {
+          name "joint_br"
+          maxVelocity 17.29
+          maxTorque 5.0 # INCREASED FOR 0.85 FRICTION ENVIRONMENT
+        }
+        PositionSensor {
+          name "joint_br_sensor"
+          resolution 0.00385
+        }
+      ]
+      endPoint Solid {
+        translation -0.08535 -0.125 -0.02105
+        rotation 0 1 0 0
+        children [
+          Pose {
+            rotation 1 0 0 1.5708
+            children [
+              Shape {
+                appearance DEF blue PBRAppearance {
+                  baseColor 0 0 1
+                  roughness 1
+                  metalness 0
+                }
+                geometry Cylinder {
+                  height 0.0255
+                  radius 0.0347
+                }
+              }
+            ]
+          }
+        ]
+        name "link_br"
+        boundingObject Pose {
+          rotation 1 0 0 1.5708
+          children [
+            Sphere {
+              radius 0.0347
+            }
+          ]
+        }
+        physics Physics {
+          density -1
+          mass 0.2355
+          centerOfMass [ 0 0 0 ]
+          inertiaMatrix [ 8.354e-05 0.00014178 8.354e-05, 0 0 0 ]
+        }
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        axis 0 1 0
+        anchor -0.08535 0.125 -0.02105
+      }
+      device [
+        RotationalMotor {
+          name "joint_bl"
+          maxVelocity 17.29
+          maxTorque 5.0 # INCREASED FOR 0.85 FRICTION ENVIRONMENT
+        }
+        PositionSensor {
+          name "joint_bl_sensor"
+          resolution 0.00385
+        }
+      ]
+      endPoint Solid {
+        translation -0.08535 0.125 -0.02105
+        rotation 0 1 0 0
+        children [
+          Pose {
+            rotation 1 0 0 1.5708
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0.5 0.5 0.5
+                  roughness 1
+                  metalness 0
+                }
+                geometry Cylinder {
+                  height 0.0255
+                  radius 0.0347
+                }
+              }
+            ]
+          }
+        ]
+        name "link_bl"
+        boundingObject Pose {
+          rotation 1 0 0 1.5708
+          children [
+            Sphere {
+              radius 0.0347
+            }
+          ]
+        }
+        physics Physics {
+          density -1
+          mass 0.2355
+          centerOfMass [ 0 0 0 ]
+          inertiaMatrix [ 8.354e-05 0.00014178 8.354e-05, 0 0 0 ]
+        }
+      }
+    }
+    Solid {
+      translation 0.0965 0 -0.048
+      children [
+        Solid {
+          children [
+            Shape {
+              appearance DEF grey PBRAppearance {
+                baseColor 0.5 0.5 0.5
+                roughness 1
+                metalness 0
+              }
+              geometry Sphere {
+                radius 0.007995
+              }
+            }
+          ]
+          name "link_front"
+          contactMaterial "frictionless_caster"
+          boundingObject Sphere {
+            radius 0.007995
+          }
+          physics Physics {
+            density -1
+            mass 0.05
+            centerOfMass [ 0 0 0 ]
+            inertiaMatrix [ 1e-06 1e-06 1e-06, 0 0 0 ]
+          }
+        }
+      ]
+      name "caster_swivel"
+      physics Physics {
+        density -1
+        mass 0.001
+        centerOfMass [ 0 0 0 ]
+        inertiaMatrix [ 1e-06 1e-06 1e-06, 0 0 0 ]
+      }
+    }
+    Solid {
+      translation 0 0 0.04
+      children [
+        Pose {
+          translation 0 0 0.02425
+          children [
+            Shape {
+              appearance DEF dark_grey PBRAppearance {
+                baseColor 0.2 0.2 0.2
+                roughness 1
+                metalness 0
+              }
+              geometry Cylinder {
+                height 0.0485
+                radius 0.0125
+              }
+            }
+          ]
+        }
+        Lidar {
+          name "webots_lidar"
+          horizontalResolution 360
+          fieldOfView 6.28318
+          numberOfLayers 1
+          minRange 0.12
+          maxRange 3.5
+          noise 0.03
+          resolution 0.001
+        }
+      ]
+      name "lidar_link"
+      boundingObject Pose {
+        translation 0 0 0.02425
+        children [
+          Cylinder {
+            height 0.0485
+            radius 0.0125
+          }
+        ]
+      }
+      physics Physics {
+        density -1
+        mass 0.052
+        centerOfMass [ 0 0 0 ]
+        inertiaMatrix [ 4e-06 4e-06 4e-06, 0 0 0 ]
+      }
+    }
+    Solid {
+      translation 0.1595 0 0.00364
+      rotation -0.589061186241443 0.5531851748986483 -0.589061186241443 2.021141
+      children [
+        Shape {
+          appearance DEF red PBRAppearance {
+            baseColor 1 0 0
+            roughness 1
+            metalness 0
+          }
+          geometry Box {
+            size 0.0045 0.025 0.023
+          }
+        }
+        Pose {
+          rotation 0.5773502691896258 -0.5773502691896258 0.5773502691896258 2.094395
+          children [
+            Camera {
+              name "my_webots_camera"
+              fieldOfView 1.047
+              width 640
+              height 480
+            }
+          ]
+        }
+      ]
+      name "camera_link"
+      physics Physics {
+        density -1
+        mass 0.004
+        centerOfMass [ 0 0 0 ]
+        inertiaMatrix [ 3e-07 2e-07 2e-07, 0 0 0 ]
+      }
+    }
+  ]
+  name "robot_a"
+  boundingObject Box {
+    size 0.31 0.22 0.08
+  }
+  physics Physics {
+    density -1
+    mass 1.54074
+    centerOfMass [ 0 0 0 ]
+    inertiaMatrix [ 0.007512 0.014051 0.019808, 0 0 0 ]
+  }
+  controller "<extern>"
+}
