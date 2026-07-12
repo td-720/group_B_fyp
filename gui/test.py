@@ -3453,8 +3453,30 @@ class ROS2ProcessManager:
     def __init__(self):
         self.active_process = None
 
+    def _sweep_background_processes(self):
+        """Helper to cleanly purge lingering background nodes."""
+        print("SWEEP: Purging background terminal processes...")
+        try:
+            subprocess.run("pkill -f 'ros2 topic pub'", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            global ROS2_SETUP_CMD
+            subprocess.run(f"{ROS2_SETUP_CMD} && ros2 daemon stop", shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print("SUCCESS: ROS 2 background discovery channels purged clean.\n")
+        except Exception as e:
+            print(f"WARNING: Automated sweep encountered an issue: {e}")
+
     def is_running(self):
-        return self.active_process is not None
+        if self.active_process is None:
+            return False
+            
+        # Actively poll the OS. If it returns anything other than None, the process died.
+        poll_status = self.active_process.poll()
+        if poll_status is not None:
+            print(f"PROCESS MONITOR: Core process terminated independently (exit code {poll_status}).")
+            self.active_process = None
+            self._sweep_background_processes()
+            return False
+            
+        return True
 
     def launch(self, target_world, node, robot_name, waypoints_str=""):
         robot_arg = f"robot_name:={robot_name}" if robot_name.strip() else ""
@@ -3481,15 +3503,7 @@ class ROS2ProcessManager:
         finally:
             self.active_process = None
 
-        print("SWEEP: Purging background terminal processes...")
-        try:
-            subprocess.run("pkill -f 'ros2 topic pub'", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            global ROS2_SETUP_CMD
-            subprocess.run(f"{ROS2_SETUP_CMD} && ros2 daemon stop", shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            print("SUCCESS: ROS 2 background discovery channels purged clean.\n")
-        except Exception as e:
-            print(f"WARNING: Automated sweep encountered an issue: {e}")
-
+        self._sweep_background_processes()
         return True
 
     def set_pid_params(self, node, robot_name, kp, ki, kd):
@@ -3514,7 +3528,6 @@ class ROS2ProcessManager:
             
         global ROS2_SETUP_CMD
         
-        # Convert Absolute (Webots) back to Relative before publishing via topic
         relative_points = [[pt[0] - ROBOT_START_X, pt[1] - ROBOT_START_Y] for pt in points]
         rotated_points = [[round(pt[1], 3), round(-pt[0], 3)] for pt in relative_points]
         
@@ -3522,7 +3535,7 @@ class ROS2ProcessManager:
         raw_cmd = f"{ROS2_SETUP_CMD} && ros2 topic pub --keep-alive 2 /gcs/via_points std_msgs/msg/String \"{{data: '{points_str}'}}\""
         subprocess.Popen(raw_cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True
-
+    
 class SimulationAnalyzer:
     @staticmethod
     def calculate_wall_following_metrics(df):
@@ -3739,9 +3752,13 @@ class AnalyticsWindow(QWidget):
     def plot_wall_following(self, df, path):
         self.figure.clear()
         
+        if df.empty:
+            QMessageBox.critical(self, "Data Error", "The selected CSV file is completely empty.")
+            return
+            
         required = ['Time', 'Desired_Distance', 'Measured_Distance', 'Angular_Vel', 'X', 'Y']
         if not all(col in df.columns for col in required):
-            QMessageBox.critical(self, "Data Error", f"CSV missing columns for new plotter.\nRequires: {required}")
+            QMessageBox.critical(self, "Data Error", f"CSV missing required columns.\nRequires: {required}")
             return
 
         self.stats_label.setText(f"Wall Following Analysis | File: {os.path.basename(path)}")
@@ -3755,7 +3772,6 @@ class AnalyticsWindow(QWidget):
         diff = abs(initial_val - setpoint)
         
         try:
-            # Find time indices for 10% and 90% crossing
             t_10 = times[np.where(abs(measured - initial_val) >= 0.10 * diff)[0][0]]
             t_90 = times[np.where(abs(measured - initial_val) >= 0.90 * diff)[0][0]]
             rise_time = t_90 - t_10
@@ -3765,18 +3781,13 @@ class AnalyticsWindow(QWidget):
         rmse = np.sqrt(np.mean((measured - setpoint)**2))
         self.update_table([f"Rise (10-90): {rise_time:.2f}s", f"RMSE: {rmse:.4f}m"])
 
-        # Setup Subplots (1 Top Wide, 2 Bottom)
         ax1 = self.figure.add_subplot(211)
         ax2 = self.figure.add_subplot(223)
         ax3 = self.figure.add_subplot(224)
 
-        # ---------------------------------------------------------
-        # FIGURE 1: Wall Distance Response (ax1)
-        # ---------------------------------------------------------
         tolerance = 0.05 * setpoint
         ax1.fill_between(times, setpoint - tolerance, setpoint + tolerance, 
                          color='gray', alpha=0.2, label='5% Tolerance Band')
-        
         ax1.plot(df['Time'], measured, color='tab:blue', linewidth=2, label='Measured Distance')
         ax1.axhline(setpoint, color='tab:red', linestyle='--', linewidth=2, label='Setpoint')
 
@@ -3790,9 +3801,6 @@ class AnalyticsWindow(QWidget):
         ax1.legend(loc='upper right', fontsize=9)
         ax1.grid(True, alpha=0.5)
 
-        # ---------------------------------------------------------
-        # FIGURE 2: Angular Velocity (ax2)
-        # ---------------------------------------------------------
         ax2.plot(df['Time'], df['Angular_Vel'], color='tab:orange', linewidth=2, label='Angular Velocity')
         ax2.axhline(0, color='black', linestyle='--', linewidth=1.5)
         ax2.set_title('Figure 2 - Angular Velocity vs Time')
@@ -3801,9 +3809,6 @@ class AnalyticsWindow(QWidget):
         ax2.legend(loc='upper right')
         ax2.grid(True, alpha=0.5)
 
-        # ---------------------------------------------------------
-        # FIGURE 5: Robot Trajectory (ax3)
-        # ---------------------------------------------------------
         ax3.plot(df['X'], df['Y'], color='blue', linewidth=2, label='Robot Trajectory')
         ax3.scatter(df['X'].iloc[0], df['Y'].iloc[0], color='green', marker='o', s=100, label='Start', zorder=5)
         ax3.scatter(df['X'].iloc[-1], df['Y'].iloc[-1], color='red', marker='X', s=100, label='End', zorder=5)
@@ -3816,17 +3821,17 @@ class AnalyticsWindow(QWidget):
 
     def plot_trajectory_planning(self, df, path):
         self.figure.clear()
-        self.stats_label.setText(f"📐 Pure Pursuit Analysis | File: {os.path.basename(path)}")
-
+        
         if df.empty:
-            QMessageBox.critical(self, "Empty File", "The CSV has headers but no data.")
+            QMessageBox.critical(self, "Data Error", "The selected CSV file is completely empty.")
             return
 
         required = ['Time', 'Ref_X', 'Ref_Y', 'Robot_X', 'Robot_Y', 'Cross_Track_Error', 'Heading_Error']
         if not all(col in df.columns for col in required):
-            QMessageBox.critical(self, "Data Error", f"CSV missing columns for new plotter.\nRequires: {required}")
+            QMessageBox.critical(self, "Data Error", f"CSV missing required columns.\nRequires: {required}")
             return
-
+            
+        self.stats_label.setText(f"📐 Pure Pursuit Analysis | File: {os.path.basename(path)}")
         time = df['Time'].values
         cte = df['Cross_Track_Error'].values
 
@@ -3834,20 +3839,14 @@ class AnalyticsWindow(QWidget):
         max_cte = np.max(np.abs(cte))
         self.update_table([f"Max: {max_cte:.4f}m", f"RMSE: {rmse_cte:.4f}m"])
 
-        # Setup Subplots (1 Top Wide, 2 Bottom)
         ax1 = self.figure.add_subplot(211)
         ax2 = self.figure.add_subplot(223)
         ax3 = self.figure.add_subplot(224)
 
-        # ---------------------------------------------------------
-        # FIGURE 1: Reference Path vs Actual Trajectory (ax1)
-        # ---------------------------------------------------------
         ax1.plot(df['Ref_X'], df['Ref_Y'], color='black', linestyle='--', linewidth=2, label='Reference Path')
         ax1.plot(df['Robot_X'], df['Robot_Y'], color='tab:blue', linewidth=2, label='Actual Trajectory')
-        
         ax1.scatter(df['Ref_X'].iloc[0], df['Ref_Y'].iloc[0], color='green', marker='o', s=120, label='Start Point', zorder=5)
         ax1.scatter(df['Ref_X'].iloc[-1], df['Ref_Y'].iloc[-1], color='red', marker='X', s=120, label='Goal Point', zorder=5)
-        
         ax1.set_title('Figure 1 - Reference Path vs Actual Robot Trajectory')
         ax1.set_xlabel('X Position (m)')
         ax1.set_ylabel('Y Position (m)')
@@ -3855,24 +3854,16 @@ class AnalyticsWindow(QWidget):
         ax1.grid(True, alpha=0.5)
         ax1.legend()
 
-        # ---------------------------------------------------------
-        # FIGURE 2: Cross-Track Error vs Time (ax2)
-        # ---------------------------------------------------------
         ax2.plot(time, cte, color='tab:red', linewidth=2, label='Cross-Track Error')
         ax2.axhline(0, color='black', linestyle='-', linewidth=1)
-        
         ax2.set_title('Figure 2 - Cross-Track Error vs Time')
         ax2.set_xlabel('Time (s)')
         ax2.set_ylabel('Cross-track error (m)')
         ax2.grid(True, alpha=0.5)
         ax2.legend()
 
-        # ---------------------------------------------------------
-        # FIGURE 3: Heading Error vs Time (ax3)
-        # ---------------------------------------------------------
         ax3.plot(time, df['Heading_Error'], color='tab:purple', linewidth=2, label='Heading Error')
         ax3.axhline(0, color='black', linestyle='-', linewidth=1)
-        
         ax3.set_title('Figure 3 - Heading Error vs Time')
         ax3.set_xlabel('Time (s)')
         ax3.set_ylabel('Heading error (degrees)')
@@ -3881,6 +3872,16 @@ class AnalyticsWindow(QWidget):
     
     def plot_obstacle_avoidance(self, df, path):
         self.figure.clear()
+        
+        if df.empty:
+            QMessageBox.critical(self, "Data Error", "The selected CSV file is completely empty.")
+            return
+            
+        required = ['Time', 'Clearance', 'Angular_Vel']
+        if not all(col in df.columns for col in required):
+            QMessageBox.critical(self, "Data Error", f"CSV missing required columns.\nRequires: {required}")
+            return
+            
         time, clearance, ang_vel = df['Time'].values, df['Clearance'].values, df['Angular_Vel'].values
         min_clear = np.min(clearance)
         self.stats_label.setText(f"🚧 OBSTACLE AVOIDANCE 🚧 | File: {os.path.basename(path)}")
@@ -3897,8 +3898,6 @@ class AnalyticsWindow(QWidget):
         ax2.plot(time, ang_vel, color='#9b59b6', label='Yaw Rate')
         ax2.set(title="Maneuver Intensity", xlabel="Time (s)", ylabel="Rad/s")
         ax2.grid(True, linestyle=':', alpha=0.7)
-
-    
 
 
 class AFIT_GCS(QWidget):
