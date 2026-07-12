@@ -3452,23 +3452,36 @@ class ROS2ProcessManager:
     
     def __init__(self):
         self.active_process = None
+        self.background_processes = [] # Track background nodes here
 
     def _sweep_background_processes(self):
-        """Helper to cleanly purge lingering background nodes."""
-        print("SWEEP: Purging background terminal processes...")
+        """Cleanly purge ONLY the background processes spawned by this GUI."""
+        print("SWEEP: Terminating tracked background processes...")
+        
+        # Kill tracked subprocesses specifically
+        for proc in self.background_processes:
+            if proc.poll() is None: # If still running
+                try:
+                    proc.terminate()
+                    proc.wait(timeout=1)
+                except Exception as e:
+                    print(f"WARNING: Failed to terminate background process: {e}")
+                    proc.kill()
+        
+        self.background_processes.clear()
+
+        # Stop the ROS 2 daemon cleanly (safe to run globally)
         try:
-            subprocess.run("pkill -f 'ros2 topic pub'", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             global ROS2_SETUP_CMD
             subprocess.run(f"{ROS2_SETUP_CMD} && ros2 daemon stop", shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print("SUCCESS: ROS 2 background discovery channels purged clean.\n")
         except Exception as e:
-            print(f"WARNING: Automated sweep encountered an issue: {e}")
+            print(f"WARNING: Daemon sweep encountered an issue: {e}")
 
     def is_running(self):
         if self.active_process is None:
             return False
             
-        # Actively poll the OS. If it returns anything other than None, the process died.
         poll_status = self.active_process.poll()
         if poll_status is not None:
             print(f"PROCESS MONITOR: Core process terminated independently (exit code {poll_status}).")
@@ -3516,12 +3529,14 @@ class ROS2ProcessManager:
                f"({ROS2_SETUP_CMD} && ros2 param set /{target_node} Kd {kd})")
                
         print(f"\n--- DISPATCHING ASYNC PID GAINS FOR /{target_node} ---")
-        subprocess.Popen(cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL)
+        proc = subprocess.Popen(cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL)
+        self.background_processes.append(proc) # Track it
 
     def publish_polynomial(self, poly_type):
         global ROS2_SETUP_CMD
         raw_cmd = f"{ROS2_SETUP_CMD} && ros2 topic pub --once /set_polynomial std_msgs/msg/String \"{{data: '{poly_type}'}}\""
-        subprocess.Popen(raw_cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc = subprocess.Popen(raw_cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.background_processes.append(proc) # Track it
 
     def publish_waypoints(self, points):
         if not self.is_running(): return False
@@ -3533,9 +3548,10 @@ class ROS2ProcessManager:
         
         points_str = json.dumps(rotated_points)
         raw_cmd = f"{ROS2_SETUP_CMD} && ros2 topic pub --keep-alive 2 /gcs/via_points std_msgs/msg/String \"{{data: '{points_str}'}}\""
-        subprocess.Popen(raw_cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        proc = subprocess.Popen(raw_cmd, shell=True, executable='/bin/bash', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.background_processes.append(proc) # Track it
         return True
-    
+        
 class SimulationAnalyzer:
     @staticmethod
     def calculate_wall_following_metrics(df):
