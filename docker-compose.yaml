@@ -1,0 +1,28 @@
+services:
+  robot_simulation:
+    image: robot_simulation
+    container_name: robot_sim_test
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    network_mode: host
+
+    environment:
+      DISPLAY: ${DISPLAY}
+      QT_X11_NO_MITSHM: "1"
+
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./simulation_logs:/home/robot/simulation_logs
+
+    devices:
+      - /dev/dri
+      - /dev/snd
+
+    group_add:
+      - video
+
+    stdin_open: true
+    tty: true
