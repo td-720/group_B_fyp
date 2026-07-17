@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# VS Code
+.vscode/
+
+# ROS build
+build/
+install/
+log/
+
+# Docker
+*.tar
+
+# Linux
+.DS_Store

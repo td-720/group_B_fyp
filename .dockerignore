@@ -1,0 +1,19 @@
+# ROS build files
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Git
+.git/
+.gitignore
+
+# Large simulation outputs
+simulation_logs/
+
+# Temporary files
+*.tmp
+*.swp

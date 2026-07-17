@@ -2,8 +2,17 @@
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Slide.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Swing.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Barbecue.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/DogHouse.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/SwingCouch.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/TableWithUmbrella.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/garden/protos/Pergolas.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/trees/protos/PalmTree.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/factory/containers/protos/CardboardBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
 
 WorldInfo {
   basicTimeStep 20
@@ -17,23 +26,67 @@ WorldInfo {
     }
     ContactProperties {
       coulombFriction [
-        0.8
+        0.85
       ]
       bounce 0
     }
   ]
 }
 Viewpoint {
-  orientation -0.3215149706368148 0.7277229862205172 0.6058443521092701 1.2601801720809984
-  position -9.26013898504783 -7.484772398703121 13.829485742856866
+  orientation -0.14947872405092125 0.33214224183419827 0.9313096382221444 0.9003157121858774
+  position -9.341657392579984 -11.897421432645706 6.305818548052002
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
+Pedestrian {
+  translation 1.72 -1.02 1.27
+  rotation 0 0 1 1.5708
+  shirtColor 0 0.333333 1
+  pantsColor 1 1 1
+  skinColor 0.184314 0 0
+}
+Pedestrian {
+  translation 1.76564 0.202846 1.37
+  rotation 0 0 1 -1.3089953071795861
+  name "pedestrian(1)"
+}
+PalmTree {
+  translation 4.55 4.38 0
+}
+PalmTree {
+  translation 4.55 -4.49 0
+  name "palm tree(1)"
+}
+Pergolas {
+  translation 2.75 -1.05 0.23
+}
+TableWithUmbrella {
+  translation 3.63 -1.55 0
+}
+SwingCouch {
+  translation 0.32 4.13 0
+  rotation 0 0 1 -1.5707953071795862
+}
+DogHouse {
+  translation -4.01 -4.41 0.04
+}
+Barbecue {
+  translation 3.81 0.1 0
+  rotation 0 0 1 3.14159
+}
+Swing {
+  translation -4 -0.92 0
+}
+Slide {
+  translation -3.92 2.47 0
+}
 RectangleArena {
   floorSize 10 10
-  floorTileSize 2 2
+  floorAppearance Parquetry {
+    type "light strip"
+  }
 }
 Robot {
   name "Ros2Supervisor"
@@ -41,22 +94,7 @@ Robot {
   supervisor TRUE
 }
 Robot {
-  name "rtf_monitor_node"
-  controller "<extern>"
-  supervisor TRUE
-  synchronization FALSE
-}
-DEF BOX_A CardboardBox {
-  translation 0.491226 -0.401389 -0.810787
-  rotation 0 1 0 0.261804
-}
-DEF BOX_B CardboardBox {
-  translation 3.48863 3.25366 -0.99
-  name "cardboard box(1)"
-}
-DEF MY_ROBOT Robot {
-  translation -4.16 -4.22 0.056
-  rotation 0 0 -1 -1.5707996938995747
+  translation -1.64 -2.9 0.056
   children [
     GPS {
     }
@@ -69,8 +107,8 @@ DEF MY_ROBOT Robot {
       translation -0.085 0 -0.04
       rotation 1 0 0 3.14159
       lookupTable [
-        -1000 -1000 0.01
-        1000 1000 0.01
+        -1000 -1000 0.005
+        1000 1000 0.005
       ]
     }
     Accelerometer {
@@ -99,16 +137,16 @@ DEF MY_ROBOT Robot {
         RotationalMotor {
           name "joint_br"
           maxVelocity 17.29
-          maxTorque 1.2
+          maxTorque 5
         }
         PositionSensor {
           name "joint_br_sensor"
-          noise 0.02
-          resolution 0.05236
+          resolution 0.00385
         }
       ]
       endPoint Solid {
         translation -0.08535 -0.125 -0.02105
+        rotation 0 1 0 0
         children [
           Pose {
             rotation 1 0 0 1.5708
@@ -138,7 +176,7 @@ DEF MY_ROBOT Robot {
         }
         physics Physics {
           density -1
-          mass 0.02355
+          mass 0.2355
           centerOfMass [
             0 0 0
           ]
@@ -158,16 +196,16 @@ DEF MY_ROBOT Robot {
         RotationalMotor {
           name "joint_bl"
           maxVelocity 17.29
-          maxTorque 1.2
+          maxTorque 5
         }
         PositionSensor {
           name "joint_bl_sensor"
-          noise 0.02
-          resolution 0.05236
+          resolution 0.00385
         }
       ]
       endPoint Solid {
         translation -0.08535 0.125 -0.02105
+        rotation 0 1 0 0
         children [
           Pose {
             rotation 1 0 0 1.5708
@@ -197,7 +235,7 @@ DEF MY_ROBOT Robot {
         }
         physics Physics {
           density -1
-          mass 0.02355
+          mass 0.2355
           centerOfMass [
             0 0 0
           ]
@@ -282,7 +320,7 @@ DEF MY_ROBOT Robot {
           minRange 0.12
           maxRange 3.5
           noise 0.03
-          resolution 0.015
+          resolution 0.001
         }
       ]
       name "lidar_link"
@@ -309,7 +347,7 @@ DEF MY_ROBOT Robot {
     }
     Solid {
       translation 0.1595 0 0.00364
-      rotation -0.5890625095294486 0.5531823566724958 -0.5890625095294486 2.02114
+      rotation -0.589061186241443 0.5531851748986483 -0.589061186241443 2.021141
       children [
         Shape {
           appearance DEF red PBRAppearance {
@@ -322,7 +360,7 @@ DEF MY_ROBOT Robot {
           }
         }
         Pose {
-          rotation 0.5773502691896258 -0.5773502691896258 0.5773502691896258 2.09439
+          rotation 0.5773502691896258 -0.5773502691896258 0.5773502691896258 2.094395
           children [
             Camera {
               name "my_webots_camera"

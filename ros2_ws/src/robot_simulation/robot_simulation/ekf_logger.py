@@ -25,7 +25,11 @@ class EKFLogger(Node):
         self.create_subscription(PointStamped, '/gps', self.gt_callback, 10)
 
         # Logging Setup
-        log_dir = os.path.expanduser('~/ros2_ws/simulation_logs')
+        # log_dir = os.path.expanduser('~/ros2_ws/simulation_logs')
+        # os.makedirs(log_dir, exist_ok=True)
+
+        # Pull from environment variable, fallback to ~/simulation_logs if not set
+        log_dir = os.environ.get('THESIS_LOG_DIR', os.path.expanduser('~/simulation_logs'))
         os.makedirs(log_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.csv_filename = os.path.join(log_dir, f'ekf_validation_{timestamp}.csv')

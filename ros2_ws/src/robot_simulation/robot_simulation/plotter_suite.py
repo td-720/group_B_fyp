@@ -5,7 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-LOG_DIR = os.path.expanduser('~/ros2_ws/simulation_logs')
+# LOG_DIR = os.path.expanduser('~/ros2_ws/simulation_logs')
+# GRAPH_DIR = os.path.join(LOG_DIR, 'graphs')
+# os.makedirs(GRAPH_DIR, exist_ok=True)
+
+LOG_DIR = os.environ.get('THESIS_LOG_DIR', os.path.expanduser('~/simulation_logs'))
 GRAPH_DIR = os.path.join(LOG_DIR, 'graphs')
 os.makedirs(GRAPH_DIR, exist_ok=True)
 

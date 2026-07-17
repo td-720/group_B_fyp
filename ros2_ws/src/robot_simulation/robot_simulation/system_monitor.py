@@ -22,7 +22,8 @@ def read_current_rtf():
 def main():
     print("[SYSTEM MONITOR] Booting hardware profiler...")
     
-    log_dir = os.path.expanduser('~/ros2_ws/simulation_logs')
+    # Pull from environment variable, fallback to ~/simulation_logs if not set
+    log_dir = os.environ.get('THESIS_LOG_DIR', os.path.expanduser('~/simulation_logs'))
     os.makedirs(log_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
