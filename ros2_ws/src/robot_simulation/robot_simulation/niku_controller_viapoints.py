@@ -37,7 +37,7 @@ class NikuController(Node):
         self.declare_parameter('max_w', 1.5)
         self.declare_parameter('k_curv', 0.6)
         
-        # THE FIX: Force dynamic typing so ROS 2 stops rejecting the parameter
+        # Force dynamic typing so ROS 2 stops rejecting the parameter
         self.declare_parameter(
             'relative_waypoints', 
             '[-0.5, -2.5, 1.32, -1.94, 0.8, -0.7, -0.55, 0.5, -2.0, -1.6, -0.6, 2.8, 1.6, 3.0, 3.3, 3.7]',
@@ -81,8 +81,8 @@ class NikuController(Node):
         self.state = 'INITIALIZING'
 
         # --- EXHAUSTIVE LOGGING MODIFICATIONS ---
-        # FIXED: Explicitly forced to ~/simulation_logs 
-        self.log_dir = os.path.expanduser('~/simulation_logs')
+        # FIXED: Explicitly checks THESIS_LOG_DIR to match wall_follower and prevent split-path mapping issues
+        self.log_dir = os.environ.get('THESIS_LOG_DIR', os.path.expanduser('~/simulation_logs'))
         os.makedirs(self.log_dir, exist_ok=True)
         
         # Using timestamp logic, appending '_tracking.csv' for the metric suite to find easily
@@ -201,7 +201,6 @@ class NikuController(Node):
             latency = (current_time - self.node_init_time).nanoseconds / 1e9
             self.get_logger().info(f"NETWORK LATENCY: First /odom received in {latency:.4f} seconds.")
             
-            # FIXED: Uses strictly ~/simulation_logs
             latency_file = os.path.join(self.log_dir, 'latency_log.txt')
             with open(latency_file, 'a') as f:
                 f.write(f"NikuController,{datetime.now().strftime('%H:%M:%S')},{latency:.4f}\n")
@@ -286,7 +285,6 @@ class NikuController(Node):
                     end_time = self.get_clock().now()
                     duration = (end_time - self.start_time).nanoseconds / 1e9
 
-                    # FIXED: Uses strictly ~/simulation_logs
                     comp_file = os.path.join(self.log_dir, 'completion_times.txt')
                     with open(comp_file, 'a') as f:
                         f.write(f"{os.path.basename(self.csv_filename)},{duration:.4f}\n")

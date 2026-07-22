@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
 
 
-# for kinematic square loop test
+
 
 # #!/usr/bin/env python3
 # import sys
